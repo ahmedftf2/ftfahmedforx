@@ -1,4 +1,5 @@
-FPhasXfKVMGKkHltimport datetime
+import logging
+import datetime
 import random
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters
@@ -10,7 +11,7 @@ except ImportError:
     MT5_AVAILABLE = False
 
 TOKEN = "8692845987:AAGgSC4DsGduFv2WoMeLbG878dxbyXcEDPU"
-ADMINN_ID = 5796443586
+ADMIN_ID = 5796443586
 
 MT5_CONFIG = {
     "login": 1200504928,
@@ -22,8 +23,7 @@ db = {
     "users": {},
     "banned": set(),
     "active_trades": {},
-    "user_settings": {},
-    "codes": {}
+    "user_settings": {}
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -63,40 +63,6 @@ def get_real_market_price():
     except:
         return 2685.50, 2685.80, 2685.20
 
-def generate_secure_code(prefix):
-    import string
-    chars = string.ascii_uppercase + string.digits
-    suffix = ''.join(random.choices(chars, k=6))
-    return f"VIP-{prefix}-{suffix}"
-
-def is_user_subscribed(user_id):
-    if user_id == ADMIN_ID:
-        return True
-    if user_id not in db["users"]:
-        return False
-    expiry = db["users"][user_id].get("expiry")
-    if not expiry or expiry < datetime.datetime.now():
-        return False
-    return True
-
-def get_remaining_time(user_id):
-    if user_id not in db["users"]:
-        return "غير مفعل ❌"
-    user_data = db["users"][user_id]
-    expiry = user_data.get("expiry")
-    if not expiry or expiry < datetime.datetime.now():
-        return "منتهي الصلاحية ❌"
-    diff = expiry - datetime.datetime.now()
-    days = diff.days
-    hours = diff.seconds // 3600
-    minutes = (diff.seconds % 3600) // 60
-    if days > 0:
-        return f"{days} يوم و {hours} ساعة"
-    elif hours > 0:
-        return f"{hours} ساعة و {minutes} دقيقة"
-    else:
-        return f"{minutes} دقيقة"
-
 def get_market_opening_and_sessions():
     utc_hour = datetime.datetime.utcnow().hour
     baghdad_hour = (utc_hour + 3) % 24
@@ -113,7 +79,7 @@ def generate_advanced_multi_strategy_signal(current_price, timeframe, lot, is_fr
     session_name = get_market_opening_and_sessions()
     price_hash = int(current_price * 10) % 100
     
-    analysis_source = "📷 (تم التحليل الفعلي بناءً على الشارت المرسوم والأسعار الحية)" if is_from_chart else "⚡ (تحليل حقيقي متوافق مع كافة المدارس والثغرات)"
+    analysis_source = "📷 (تم التحليل الفعلي بناءً على الشارت المرسوم والأسعار الحية المباشرة)" if is_from_chart else "⚡ (تحليل حقيقي متوافق مع كافة المدارس والثغرات المؤسسية وسعر JustMarkets والمنصة)"
 
     if price_hash % 2 == 0:
         is_buy = True
@@ -179,61 +145,37 @@ def generate_advanced_multi_strategy_signal(current_price, timeframe, lot, is_fr
     return report, trade_data
 
 def get_clean_keyboard(is_admin=False, user_id=None):
-    if not is_admin and not is_user_subscribed(user_id):
-        return InlineKeyboardMarkup([
-            [InlineKeyboardButton("🚀 تشغيل البوت والبداية (Start)", callback_data="menu_start")],
-            [InlineKeyboardButton("🔑 إدخال كود الاشتراك", callback_data="menu_activate")],
-            [InlineKeyboardButton("💬 مراسلة المطور للحصول على كود", url="https://t.me/V8V8VN")]
-        ])
-
-    time_left = get_remaining_time(user_id) if user_id else "غير مسجل"
     settings = db.get("user_settings", {}).get(user_id, {"tf": "5M", "lot": 0.01})
     
     keyboard = [
         [InlineKeyboardButton("🚀 زر البداية والـ Start", callback_data="menu_start")],
-        [InlineKeyboardButton(f"⏳ اشتراكك: {time_left}", callback_data="noop_c")],
+        [InlineKeyboardButton("✅ البوت مفتاح حر ومجاني بالكامل للجميع 🔥", callback_data="noop_c")],
         [InlineKeyboardButton("📊 تحليل السوق وجلب صفقة بالأسعار الحية", callback_data="get_unified_signal")],
         [
             InlineKeyboardButton(f"⏱ الفريم: [{settings['tf']}]", callback_data="menu_tf"),
             InlineKeyboardButton(f"⚖ اللوت: [{settings['lot']}]", callback_data="menu_lot")
         ],
-        [InlineKeyboardButton("🔑 تفعيل كود اشتراك جديد", callback_data="menu_activate")],
-        [InlineKeyboardButton("💬 تليجرام المطور للاشتراك", url="https://t.me/V8V8VN")]
+        [InlineKeyboardButton("💬 تليجرام المطور للتواصل", url="https://t.me/V8V8VN")]
     ]
     if is_admin:
         keyboard.insert(0, [InlineKeyboardButton("🛡 غرفة القيادة والتحكم الإداري [ADMIN]", callback_data="menu_admin")])
     return InlineKeyboardMarkup(keyboard)
 
 def get_welcome_text(user_id=None, is_admin=False):
-    if not is_admin and not is_user_subscribed(user_id):
-        return (
-            f"🦅 نورت البوت يا معلم التداول 🦅\n"
-            f"📊 وطلاب احمد السيد المحترم 📊\n"
-            f"اقدم لكم الاستاذ 🐦🔥 احمد السيد 🐦‍‍🔥\n"
-            f"خبير تداول الفوركس والذهب 🪙 \n"
-            f"🤴🏻 خبرة تحليل ومدارس على مدى 3 سنوات 🇮🇶👑\n"
-            f"📈خبرة صنع مؤشرات عالميا و وشرق اوسط 📉\n\n"
-            f"⚠ **عذراً، اشتراكك غير مفعل أو منتهي الصلاحية!**\n"
-            f"يرجى إدخال كود الاشتراك الحصري أو مراسلة المطور.\n\n"
-            f"Telegram: @V8V8VN"
-        )
-
-    time_left = get_remaining_time(user_id) if user_id else "غير مسجل"
+    curr_live, ask_live, bid_live = get_real_market_price()
     return (
         f"🦅 نورت البوت يا معلم التداول 🦅\n"
         f"📊 وطلاب احمد السيد المحترم 📊\n"
-        f"اقدم لكم الاستاذ 🐦‍‍🔥 احمد السيد 🐦‍‍🔥\n"
+        f"اقدم لكم الاستاذ 🐦‍🔥 احمد السيد 🐦‍‍🔥\n"
         f"خبير تداول الفوركس والذهب 🪙 \n"
         f"🤴🏻 خبرة تحليل ومدارس على مدى 3 سنوات 🇮🇶👑\n"
         f"📈خبرة صنع مؤشرات عالميا و وشرق اوسط 📉\n\n"
-        f"هاذا البوت يقدم:\n"
-        f"🪙 توصيات الذهب VIP متصلة بالأسعار الحية وتحليل دقيق 🪙\n\n"
-        f"للاشتراك تواصل مع استاذ احمد عبر تليجرام:\n"
-        f"Telegram: @V8V8VN\n"
+        f"🪙 **السعر الحي الحالي للذهب (سوق مباشر):** `{curr_live}`\n"
+        f"📈 (Bid: `{bid_live}` | Ask: `{ask_live}`)\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"⏳ **حالة اشتراكك:** `{time_left}`\n"
+        f"🟢 **حالة البوت:** `مفتوح للجميع بدون اشتراك إجباري`\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"👇 اختر من الأزرار أدناه للتحكم والعمل (أو أرسل صورة الشارت مباشرة لتحليلها):"
+        f"👇 اختر من الأزرار أدناه للعمل (أو أرسل صورة الشارت مباشرة لتحليلها):"
     )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -262,10 +204,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "menu_start":
         await query.edit_message_text(get_welcome_text(user_id, is_admin=is_admin), reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
-        return
-
-    if not is_admin and not is_user_subscribed(user_id) and data not in ["menu_activate", "noop_c"]:
-        await query.answer("⚠ اشتراكك منتهي أو غير مفعل! يرجى إدخال كود صحيح.", show_alert=True)
         return
 
     if data == "menu_tf":
@@ -304,13 +242,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(get_welcome_text(user_id, is_admin=is_admin), reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
         return
 
-    elif data == "menu_activate":
-        context.user_data["waiting_for_code"] = True
-        await query.edit_message_text("🔑 **أرسل الآن كود الاشتراك الفريد الخاص بك في الرسائل:**", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 رجوع", callback_data="menu_start")]]), parse_mode="Markdown")
-        return
-
     elif data == "get_unified_signal":
-        await query.edit_message_text("⏳ **انتظر... جاري التحليل الحقيقي للأسواق والبحث عن أفضل ثغرة واستراتيجية الآن...**", parse_mode="Markdown")
+        await query.edit_message_text("⏳ **انتظر... جاري جلب السعر الحي من المنصة وتحليل الأسواق عبر كافة المدارس والثغرات...**", parse_mode="Markdown")
         
         curr, _, _ = get_real_market_price()
         settings = db["user_settings"].get(user_id, {"tf": "5M", "lot": 0.01})
@@ -360,7 +293,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 trade["current_stage"] += 1
                 msg = (
                     f"🎉 **مبروك تم الوصول إلى الهدف رقم {stage} بنجاح!** 🪙\n"
-                    f"السعر الحالي: `{curr}`\n\n"
+                    f"السعر الحي الحالي: `{curr}`\n\n"
                     f"🔍 **جاري التحليل والتاكيد الجديد للفريم:**\n"
                     f"تم تحليل السوق من جديد للتأكيد: الاستراتيجيات تؤكد استمرار الزخم والصعود نحو الهدف التالي (`الهدف {trade['current_stage']}`).\n\n"
                     f"💡 *القرار:* أكمل الصفقة ولا تخرج، واستمر نحو الهدف القادم!"
@@ -368,7 +301,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 msg = (
                     f"🏆 **مبروك تم الوصول للهدف الثالث والأخير بنجاح تام!** 🚀🔥\n"
-                    f"السعر الحالي: `{curr}`\n\n"
+                    f"السعر الحي الحالي: `{curr}`\n\n"
                     f"🔍 **تحليل التأكيد النهائي:**\n"
                     f"تم استنفاد كامل السيولة وتحقيق الأهداف بالكامل.\n"
                     f"💡 *القرار:* **يُفضل الخروج الآن بجانب الأرباح الكاملة**، وسنقوم حالياً بتوليد صفقة جديدة كلياً لك!"
@@ -380,9 +313,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             msg = (
                 f"ℹ **حالة متابعة الصفقة:**\n"
-                f"السعر الحالي للذهب: `{curr}`\n"
+                f"السعر الحي للذهب الآن: `{curr}`\n"
                 f"الهدف المطلوب الحالي (TP{stage}): `{tp1 if stage==1 else (tp2 if stage==2 else tp3)}`\n\n"
-                f"⏳ الصفقة مستمرة وتسير نحو الهدف، السعر يتحرك تلقائياً من المنصة الحية. انتظر حتى يتم الوصول!"
+                f"⏳ الصفقة مستمرة وتسير نحو الهدف، السعر يتحدث تلقائياً من المنصة الحية. انتظر حتى يتم الوصول!"
             )
             
         back_markup = InlineKeyboardMarkup([
@@ -397,46 +330,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not is_admin:
             return
         admin_kb = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🎟 كود ساعة [15$]", callback_data="gen_1h"), InlineKeyboardButton("🎟 كود يوم [25$]", callback_data="gen_1d")],
-            [InlineKeyboardButton("🎟 كود أسبوع [55$]", callback_data="gen_1w"), InlineKeyboardButton("🎟 كود أسبوعين [90$]", callback_data="gen_2w")],
-            [InlineKeyboardButton("🎟 كود شهر VIP [225$]", callback_data="gen_30d")],
             [InlineKeyboardButton("👥 إدارة وحظر المشتركين", callback_data="admin_users_list")],
             [InlineKeyboardButton("🔙 العودة للرئيسية", callback_data="menu_start")]
         ])
-        await query.edit_message_text("🛡 **غرفة القيادة والتحكم الإداري وأسعار الأكواد الجديدة:**", reply_markup=admin_kb, parse_mode="Markdown")
-        return
-
-    elif data.startswith("gen_"):
-        if not is_admin:
-            return
-        ptype = data.replace("gen_", "")
-        if ptype == "1h":
-            code = generate_secure_code("1H")
-            delta = datetime.timedelta(hours=1)
-            label = "ساعة (15$)"
-        elif ptype == "1d":
-            code = generate_secure_code("1D")
-            delta = datetime.timedelta(days=1)
-            label = "يوم (25$)"
-        elif ptype == "1w":
-            code = generate_secure_code("1W")
-            delta = datetime.timedelta(weeks=1)
-            label = "أسبوع (55$)"
-        elif ptype == "2w":
-            code = generate_secure_code("2W")
-            delta = datetime.timedelta(weeks=2)
-            label = "أسبوعين (90$)"
-        else:
-            code = generate_secure_code("30D")
-            delta = datetime.timedelta(days=30)
-            label = "شهر VIP (225$)"
-            
-        db["codes"][code] = {"delta": delta, "used": False}
-        await query.edit_message_text(
-            f"✅ **تم توليد كود الـ {label} بنجاح:**\n\n`{code}`",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 رجوع للإدارة", callback_data="menu_admin")]]),
-            parse_mode="Markdown"
-        )
+        await query.edit_message_text("🛡 **غرفة القيادة والتحكم الإداري:**", reply_markup=admin_kb, parse_mode="Markdown")
         return
 
     elif data == "admin_users_list":
@@ -449,7 +346,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔓 إلغاء حظر مستخدم", callback_data="admin_prompt_unban")],
             [InlineKeyboardButton("🔙 رجوع للإدارة", callback_data="menu_admin")]
         ])
-        await query.edit_message_text(f"👥 **المشتركين النشطين:** `{users_count}`\n- المحظورين: `{banned_count}`", reply_markup=admin_users_kb, parse_mode="Markdown")
+        await query.edit_message_text(f"👥 **المستخدمين المسجلين:** `{users_count}`\n- المحظورين: `{banned_count}`", reply_markup=admin_users_kb, parse_mode="Markdown")
         return
 
     elif data == "admin_prompt_ban":
@@ -463,7 +360,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     elif data == "noop_c":
-        await query.answer("ℹ النظام محمي، ومتصل بسوق الذهب الحي تماماً.", show_alert=False)
+        await query.answer("ℹ البوت يعمل بشكل حر ومجاني بالكامل وبدون أي اشتراكات إجبارية.", show_alert=False)
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -472,11 +369,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_admin = (user_id == ADMIN_ID)
     
     if update.message.photo:
-        if not is_admin and not is_user_subscribed(user_id):
-            await update.message.reply_text("⚠ اشتراكك منتهي أو غير مفعل! يرجى إدخال كود التفعيل.", reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id))
-            return
-            
-        await update.message.reply_text("📷 **تم استلام صورة الشارت بنجاح!**\n⏳ انتظر... جاري تحليل الرسم البياني والمدارس والثغرات واستخراج الصفقة الفعلية...", parse_mode="Markdown")
+        await update.message.reply_text("📷 **تم استلام صورة الشارت بنجاح!**\n⏳ انتظر... جاري جلب السعر الحي وتحليل الرسم البياني واستخراج الصفقة الفعلية...", parse_mode="Markdown")
         
         curr, _, _ = get_real_market_price()
         settings = db["user_settings"].get(user_id, {"tf": "5M", "lot": 0.01})
@@ -515,26 +408,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except ValueError:
             await update.message.reply_text("❌ أيدي غير صالح.", reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id))
         return
-
-    if context.user_data.get("waiting_for_code"):
-        context.user_data["waiting_for_code"] = False
-        code_info = db["codes"].get(text)
-        if code_info:
-            if code_info["used"]:
-                await update.message.reply_text("⚠ **عذراً، هذا الكود تم استخدامه مسبقاً!**", reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
-                return
-            code_info["used"] = True
-            if user_id not in db["users"]:
-                db["users"][user_id] = {"name": update.effective_user.full_name}
-            base_time = db["users"][user_id].get("expiry", datetime.datetime.now())
-            if base_time < datetime.datetime.now():
-                base_time = datetime.datetime.now()
-            db["users"][user_id]["expiry"] = base_time + code_info["delta"]
-            
-            await update.message.reply_text(f"🎉 **تم تفعيل الاشتراك بنجاح تام!**\n⏳ الوقت المتبقي: `{get_remaining_time(user_id)}`", reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
-        else:
-            await update.message.reply_text("❌ **الكود غير صحيح أو منتهي الصلاحية.**", reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
-        return
     
     await update.message.reply_text(get_welcome_text(user_id, is_admin=is_admin), reply_markup=get_clean_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
 
@@ -544,7 +417,7 @@ def main():
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO & ~filters.COMMAND, message_handler))
     
-    print("🚀 Ultimate Gold Trading Bot Running Successfully without Force Subscription...")
+    print("🚀 Ultimate Gold Trading Bot Running Successfully with Live Market & No Force Subscription...")
     app.run_polling()
 
 if __name__ == "__main__":
