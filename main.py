@@ -83,31 +83,22 @@ def get_market_opening_and_sessions():
     utc_hour = datetime.datetime.utcnow().hour
     baghdad_hour = (utc_hour + 3) % 24
     if 1 <= baghdad_hour < 9:
-        return "جلسة طوكيو / سيدني 🇯🇵🇦🇺 (سيولة آسيوية هادئة)"
+        return "جلسة طوكيو / سيدني 🇯🇵🇦🇺"
     elif 9 <= baghdad_hour < 15:
-        return "جلسة لندن 🇬🇧 (أوروبا - سيولة قوية وافتتاح المؤسسات)"
+        return "جلسة لندن 🇬🇧"
     elif 15 <= baghdad_hour < 22:
-        return "جلسة نيويورك 🇺🇸 (أمريكا - السيولة الكبرى وانفجار حركة الذهب)"
+        return "جلسة نيويورك 🇺🇸"
     else:
-        return "فترة إغلاق وهدوء الأسواق الانتقالية 🌐"
+        return "فترة إغلاق وهدوء الأسواق 🌐"
 
 def generate_advanced_multi_strategy_signal(current_price, timeframe, lot, is_from_chart=False):
     session_name = get_market_opening_and_sessions()
     price_hash = int(current_price * 10) % 100
     
-    analysis_source = "📷 (تم التحليل الفعلي بناءً على الشارت المرسوم والأسعار الحية المباشرة)" if is_from_chart else "⚡ (تحليل حقيقي متوافق مع كافة المدارس والثغرات المؤسسية وسعر JustMarkets والمنصة)"
-
     if price_hash % 2 == 0:
         is_buy = True
         trade_dir = "شراء 🟢 (BUY)"
         strength = "قوية جداً 🔥 (مضمونة الأهداف الثلاثة)"
-        strat_desc = (
-            f"• {analysis_source}\n"
-            "• مدرسة الـ ICT والسيولة المؤسسية (Institutional Order Flow)\n"
-            "• ثغرة الفجوة السعرية (FVG - Fair Value Gap) المكتشفة بالهيكل الحقيقي\n"
-            "• ارتداد هندسي دقيق من مناطق الطلب الكبرى (Demand Zone)\n"
-            "• تأكيد تقاطع مؤشرات الزخم وفوليوم السيولة الحقيقي"
-        )
         tp1 = round(current_price + 4.5, 2)
         tp2 = round(current_price + 9.5, 2)
         tp3 = round(current_price + 16.0, 2)
@@ -116,24 +107,15 @@ def generate_advanced_multi_strategy_signal(current_price, timeframe, lot, is_fr
         is_buy = False
         trade_dir = "بيع 🔴 (SELL)"
         strength = "قوية جداً 🔥 (مضمونة الأهداف الثلاثة)"
-        strat_desc = (
-            f"• {analysis_source}\n"
-            "• صيد سيولة المشترين الوهمية (Stop Hunt Liquidity Sweep)\n"
-            "• اختبار منطقة العرض والبيع المؤسسي (Supply Zone OB)\n"
-            "• استراتيجية كسر هيكل السوق الداخلي وتأكيد الشارت (BOS Downward)\n"
-            "• انحراف مؤشر القوة النسبية الحقيقي (RSI Divergence)"
-        )
         tp1 = round(current_price - 4.5, 2)
         tp2 = round(current_price - 9.5, 2)
         tp3 = round(current_price - 16.0, 2)
         sl  = round(current_price + 5.0, 2)
 
     report = (
-        f"📊 التقرير التحليلي الاحترافي الشامل للذهب 🪙\n"
+        f"📊 التقرير التحليلي الاحترافي للذهب 🪙\n"
         f"                                👑🇮🇶 الاستاذ احمد السيد  🇮🇶👑\n\n"
         f"🌐 **جلسة التداول الحالية:** `{session_name}`\n\n"
-        f"🔍 **تأكيد المدارس والثغرات والاستراتيجيات المطبقة:**\n"
-        f"{strat_desc}\n\n"
         f"🪙 **سعر الدخول الحي الأساسي:** `{current_price}`\n"
         f"⏱ **الفريم الزمني:** `{timeframe}` | **اللوت المقترح:** `{lot}`\n\n"
         f"⚡ **الاتجاه الفني المعتمد:** {trade_dir}\n"
@@ -197,7 +179,7 @@ def get_welcome_text(user_id=None, is_admin=False):
     return (
         f"🦅 نورت البوت يا معلم التداول 🦅\n"
         f"📊 وطلاب احمد السيد المحترم 📊\n"
-        f"اقدم لكم الاستاذ 🐦‍🔥 احمد السيد 🐦‍‍‍‍🔥\n"
+        f"اقدم لكم الاستاذ 🐦‍🔥 احمد السيد 🐦🔥\n"
         f"خبير تداول الفوركس والذهب 🪙 \n"
         f"🤴🏻 خبرة تحليل ومدارس على مدى 3 سنوات 🇮🇶👑\n\n"
         f"🪙 **السعر الحي الحالي للذهب (سوق مباشر):** `{curr_live}`\n"
@@ -303,7 +285,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     elif data == "get_unified_signal":
-        await query.edit_message_text("⏳ **انتظر... جاري جلب السعر الحي من المنصة وتحليل الأسواق عبر كافة المدارس والثغرات...**", parse_mode="Markdown")
+        await query.edit_message_text("⏳ **انتظر... جاري جلب السعر الحي من المنصة وتحليل السوق فوراً...**", parse_mode="Markdown")
         
         curr, _, _ = get_real_market_price()
         settings = db["user_settings"].get(user_id, {"tf": "5M", "lot": 0.01})
@@ -354,16 +336,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg = (
                     f"🎉 **مبروك تم الوصول إلى الهدف رقم {stage} بنجاح!** 🪙\n"
                     f"السعر الحي الحالي: `{curr}`\n\n"
-                    f"🔍 **جاري التحليل والتاكيد الجديد للفريم:**\n"
-                    f"تم تحليل السوق من جديد للتأكيد: الاستراتيجيات تؤكد استمرار الزخم والصعود نحو الهدف التالي (`الهدف {trade['current_stage']}`).\n\n"
-                    f"💡 *القرار:* أكمل الصفقة ولا تخرج، واستمر نحو الهدف القادم!"
+                    f"🔍 **تحديث حالة الصفقة:**\n"
+                    f"الزخم مستمر، جاري المتابعة نحو الهدف التالي (`الهدف {trade['current_stage']}`).\n\n"
+                    f"💡 *القرار:* أكمل الصفقة واستمر نحو الهدف القادم!"
                 )
             else:
                 msg = (
                     f"🏆 **مبروك تم الوصول للهدف الثالث والأخير بنجاح تام!** 🚀🔥\n"
                     f"السعر الحي الحالي: `{curr}`\n\n"
-                    f"🔍 **تحليل التأكيد النهائي:**\n"
-                    f"تم استنفاد كامل السيولة وتحقيق الأهداف بالكامل.\n"
                     f"💡 *القرار:* **يُفضل الخروج الآن بجانب الأرباح الكاملة**، وسنقوم حالياً بتوليد صفقة جديدة كلياً لك!"
                 )
                 settings = db["user_settings"].get(user_id, {"tf": "5M", "lot": 0.01})
@@ -375,7 +355,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"ℹ **حالة متابعة الصفقة:**\n"
                 f"السعر الحي للذهب الآن: `{curr}`\n"
                 f"الهدف المطلوب الحالي (TP{stage}): `{tp1 if stage==1 else (tp2 if stage==2 else tp3)}`\n\n"
-                f"⏳ الصفقة مستمرة وتسير نحو الهدف، السعر يتحدث تلقائياً من المنصة الحية. انتظر حتى يتم الوصول!"
+                f"⏳ الصفقة مستمرة وتسير نحو الهدف، السعر يتحدث تلقائياً من السوق المباشر. انتظر حتى يتم الوصول!"
             )
             
         back_markup = InlineKeyboardMarkup([
@@ -403,7 +383,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         rand_code = f"VIP-{random.randint(1000, 9999)}"
         db["valid_codes"][rand_code] = {"duration": "شهر كامل", "hours": 720}
         await query.answer(f"✅ تم إنشاء كود جديد: {rand_code}", show_alert=True)
-        await query.edit_message_text(f"✅ **تم توليد كود تفعيل جديد بنجاح:**\n`{rand_code}`\n\n- المدة: شهر كامل (225 دولار)\nأعطه للمشترك ليقوم بإدخاله في البوت.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 رجوع للإدارة", callback_data="menu_admin")]]), parse_mode="Markdown")
+        await query.edit_message_text(f"✅ **تم توليد كود تفعيل جديد بنجاح:**\n`{rand_code}`\n\n- المدة: شهر كامل (225 دولار)\nأعطه للمشترك.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 رجوع للإدارة", callback_data="menu_admin")]]), parse_mode="Markdown")
         return
 
     elif data == "admin_users_list":
@@ -452,13 +432,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"🎉 **مبروك! تم تفعيل اشتراكك بنجاح تام** 🚀\n"
                 f"⏳ **مدة الاشتراك المضافة:** {code_info['duration']}\n"
                 f"📅 **ينتهي في:** `{expiry.strftime('%Y-%m-%d %H:%M')}`\n\n"
-                f"أصبحت الآن قادراً على استخدام كافة مميزات البوت والتحليل الحي!",
+                f"أصبحت الآن قادراً على استخدام كافة مميزات البوت!",
                 reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id),
                 parse_mode="Markdown"
             )
         else:
             await update.message.reply_text(
-                "❌ **عذراً، كود التفعيل غير صحيح أو منتهي الصلاحية!**\nيرجى التواصل مع المطور للحصول على كود صالح.",
+                "❌ **عذراً، كود التفعيل غير صحيح أو منتهي الصلاحية!**\nيرجى التواصل مع المطور.",
                 reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id),
                 parse_mode="Markdown"
             )
@@ -469,7 +449,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             target_id = int(text)
             db["banned"].add(target_id)
-            await update.message.reply_text(f"✅ تم الحظر بنجاح: `{target_id}`", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
+            await update.message.reply_text(f"✅ تم الحظر بنجاح للأيدي: `{target_id}`", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
         except ValueError:
             await update.message.reply_text("❌ أيدي غير صالح.", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id))
         return
@@ -480,7 +460,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             target_id = int(text)
             if target_id in db["banned"]:
                 db["banned"].remove(target_id)
-                await update.message.reply_text(f"✅ تم رفع الحظر: `{target_id}`", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
+                await update.message.reply_text(f"✅ تم رفع الحظر عن الأيدي: `{target_id}`", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id), parse_mode="Markdown")
             else:
                 await update.message.reply_text("⚠ الأيدي غير موجود في قائمة الحظر.", reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id))
         except ValueError:
@@ -489,14 +469,14 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not is_subscribed(user_id):
         await update.message.reply_text(
-            "🔒 **عذراً، يجب تفعيل اشتراكك أولاً لاستخدام ميزة تحليل الشارت وجلب التوصيات!**\nيرجى إدخال كود التفعيل أو مراسلة المطور.",
+            "🔒 **عذراً، يجب تفعيل اشتراكك أولاً لاستخدام البوت!**\nيرجى إدخال كود التفعيل أو مراسلة المطور.",
             reply_markup=get_main_keyboard(is_admin=is_admin, user_id=user_id),
             parse_mode="Markdown"
         )
         return
 
     if update.message.photo:
-        await update.message.reply_text("📷 **تم استلام صورة الشارت بنجاح!**\n⏳ انتظر... جاري جلب السعر الحي وتحليل الرسم البياني واستخراج الصفقة الفعلية...", parse_mode="Markdown")
+        await update.message.reply_text("📷 **تم استلام الشارت بنجاح!**\n⏳ جاري تحليل الرسم البياني واستخراج الصفقة...", parse_mode="Markdown")
         
         curr, _, _ = get_real_market_price()
         settings = db["user_settings"].get(user_id, {"tf": "5M", "lot": 0.01})
@@ -519,7 +499,7 @@ def main():
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO & ~filters.COMMAND, message_handler))
     
-    print("🚀 Ultimate Gold Trading Bot with Official Prices & Activation Codes Running Successfully...")
+    print("🚀 Ultimate Gold Trading Bot Running Successfully...")
     app.run_polling()
 
 if __name__ == "__main__":
