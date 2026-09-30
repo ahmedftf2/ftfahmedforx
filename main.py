@@ -1,5 +1,4 @@
-import logging
-import datetime
+FPhasXfKVMGKkHltimport datetime
 import random
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters
@@ -10,8 +9,8 @@ try:
 except ImportError:
     MT5_AVAILABLE = False
 
-TOKEN = "8894419194:AAH7DLmOtug7FPhasXfKVMGKkHlt5n7Dw4s"
-ADMIN_ID = 5796443586
+TOKEN = "8692845987:AAGgSC4DsGduFv2WoMeLbG878dxbyXcEDPU"
+ADMINN_ID = 5796443586
 
 MT5_CONFIG = {
     "login": 1200504928,
